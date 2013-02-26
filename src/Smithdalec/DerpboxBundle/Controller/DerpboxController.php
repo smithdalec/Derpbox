@@ -5,6 +5,7 @@ namespace Smithdalec\DerpboxBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Security\Core\SecurityContext;
 use Smithdalec\DerpboxBundle\Entity\File;
+use Smithdalec\DerpboxBundle\Entity\User as DerpboxUser;
 use Smithdalec\DerpboxBundle\Entity\Folder;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -202,7 +203,7 @@ class DerpboxController extends Controller implements InitializableControllerInt
         if (!$file) {
             throw $this->createNotFoundException('The file does not exist');
         }
-        $user_authenticated = $this->user instanceof Smithdalec\DerpboxBundle\Entity\User;
+        $user_authenticated = ($this->user instanceof DerpboxUser);
         // Whether or not the current user is the owner of the file
         $user_owner = ($user_authenticated && $this->user->getId() == $file->getUser());
         // If the enclosing folder is public
