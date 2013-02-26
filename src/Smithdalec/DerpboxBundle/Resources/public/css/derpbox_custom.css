@@ -1,0 +1,30 @@
+body {
+  /*background-color: #f5f5f5;*/
+  padding-top:60px;
+}
+
+.icon-filetype {
+	margin-right:10px;
+}
+
+.label {
+	padding: 1px 2px;
+	font-size: 10.5px;
+	font-weight: normal;
+}
+.table .label {
+	margin-left: 5px;
+}
+
+.icon-filetype {
+	margin-right: 5px;
+}
+
+#share-modal input {
+	width:515px;
+}
+
+input[type="file"] {
+	line-height:0px;
+	margin-right: 5px;
+}

@@ -1,0 +1,147 @@
+{% extends 'SmithdalecDerpboxBundle:Derpbox:html_wrapper.html.twig' %}
+{% block content %}
+<ul class="breadcrumb">
+  <li><a href="{{path('derpbox_main')}}">Home</a> <span class="divider">/</span></li>
+    {% if current_folder %}
+        <li class="active">{{current_folder.name}}</li>
+        {% if current_folder.isPublic() %}
+            <span class="label">Public</span>
+        {% endif %}
+    {% endif %}
+</ul>
+{% if upload_form and folder_form %}
+    <ul class="inline add-item">
+        <li><strong>+</strong> <a href="#upload-modal" data-toggle="modal">Upload file</a></li>
+        {% if not current_folder %}
+        <li><strong>+</strong> <a href="#folder-modal" data-toggle="modal">Create folder</a></li>
+        {% endif %}
+    </ul>
+{% endif %}
+
+{% if files or folders %}
+    <table id="derpbox-table" class="table table-striped table-bordered table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th class="span2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for folder in folders %}
+            <tr>
+                <td>
+                    <i class="icon-folder-open icon-filetype"></i>
+                    <a href="{{path('derpbox_view_folder', {"folder_id":folder.id})}}">{{folder.name}}</a>
+                    {% if folder.isPublic() %}
+                        <span class="label">Public</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if folder.isPublic() %}
+                        <a href="{{path('derpbox_make_folder_private', {"folder_id":folder.id})}}" data-toggle="tooltip" title="Make folder private"><i class="icon-lock"></i></a>
+                    {% else %}
+                        <a href="{{path('derpbox_make_folder_public', {"folder_id":folder.id})}}" data-toggle="tooltip" title="Make folder public"><i class="icon-globe"></i></a>
+                    {% endif %}
+                    <a href="{{path('derpbox_delete_folder', {"folder_id":folder.id})}}" data-toggle="tooltip" title="Delete this folder"><i class="icon-trash"></i></a>
+                    {% if folder.isPublic() %}
+                        <a href="#share-modal" class="share" data-toggle="modal" onClick="$('#share-url').val('{{'http://' ~ app.request.host ~ path('derpbox_view_public_folder', {"folder_id":folder.id})}}')" data-toggle="tooltip" title="Share this folder"><i class="icon-share"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% for file in files %}
+            <tr>
+                <td>
+                    <i class="{{file.getIcon()}} icon-filetype"></i>
+                    {% if app.user %}
+                        <a href="{{path('derpbox_download_file', {"file_id":file.id})}}">{{file.name}}</a>
+                    {% else %}
+                        <a href="{{path('derpbox_download_public_file', {"file_id":file.id})}}">{{file.name}}</a>
+                    {% endif %}
+                    {% if file.isPublic() %}
+                        <span class="label">Public</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if app.user %}
+                        {% if file.isPublic() %}
+                            <a href="{{path('derpbox_make_file_private', {"file_id":file.id})}}" data-toggle="tooltip" title="Make file private"><i class="icon-lock"></i></a>
+                        {% else %}
+                            <a href="{{path('derpbox_make_file_public', {"file_id":file.id})}}" data-toggle="tooltip" title="Make file public"><i class="icon-globe"></i></a>
+                        {% endif %}
+                        <a href="{{path('derpbox_delete_file', {"file_id":file.id})}}" data-toggle="tooltip" title="Delete file"><i class="icon-trash"></i></a>
+                    {% endif %}
+                    {% if file.isPublic() %}
+                        <a href="#share-modal" class="share" data-toggle="modal" onClick="$('#share-url').val('{{'http://' ~ app.request.host ~ path('derpbox_download_public_file', {"file_id":file.id})}}')" data-toggle="tooltip" title="Share this file"><i class="icon-share"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="alert alert-warning">No files uploaded!</div>
+{% endif %}
+
+{% if upload_form %}
+    <!-- Upload File Modal -->
+    <div id="upload-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <form id="upload-form" action="{{path('derpbox_add_file')}}" method="post" {{ form_enctype(upload_form) }}>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="uploadModalLabel">Upload a document</h3>
+            </div>
+            <div class="modal-body">
+                <div class="notice"></div>
+                {{ form_widget(upload_form.file, { 'attr': {'class': ''} }) }}
+                {{ form_rest(upload_form) }}
+                <div id="file-size"></div>
+                <div id="upload-progress-bar" class="progress progress-striped active" style="display:none;">
+                    <div class="bar"></div>
+                    <div class="percent" style="float:right"></div>
+                </div>
+            </div>
+
+            <div id="progressNumber"></div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                <input id="file-upload-submit" class="btn btn-primary" type="button" value="Upload" />
+            </div>
+        </form>
+    </div>
+{% endif %}
+
+{% if folder_form %}
+    <!-- Add Folder Modal -->
+    <div id="folder-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="folderModalLabel" aria-hidden="true">
+        <form action="{{path('derpbox_add_folder')}}" method="post" {{ form_enctype(folder_form) }}>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="folderModalLabel">Add a folder</h3>
+            </div>
+            <div class="modal-body">
+                {{ form_widget(folder_form) }}
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                <input class="btn btn-primary" type="submit" value="Add" />
+            </div>
+        </form>
+    </div>
+{% endif %}
+
+<!-- Share Modal -->
+<div id="share-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sharerModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="shareModalLabel">Share</h3>
+    </div>
+    <div class="modal-body">
+        <p>Copy the URL and share with others</p>
+        <input type="text" id="share-url" value="" />
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+</div>
+{% endblock %}

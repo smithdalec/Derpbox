@@ -1,0 +1,16 @@
+{% extends 'SmithdalecDerpboxBundle:Derpbox:html_wrapper.html.twig' %}
+{% block stylesheets %}
+    {{parent()}}
+    <link href="{{ asset('bundles/smithdalecderpbox/css/derpbox_login.css') }}" type="text/css" rel="stylesheet" />
+{% endblock %}
+{% block content %}
+    <form action="{{ path('derpbox_login_check') }}" method="post" class="form-signin">
+        <h2>Log in to Derpbox</h2>
+        {% if error %}
+            <div class="alert alert-error"><strong>Error:</strong> {{ error.message }}</div>
+        {% endif %}
+        <input type="text" placeholder="Username" id="username" name="_username" value="{{ last_username }}" />
+        <input type="password" placeholder="Password" id="password" name="_password" />
+        <button type="submit" class="btn btn-large btn-primary">Log in</button>
+    </form>
+{% endblock %}

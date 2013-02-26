@@ -1,0 +1,55 @@
+derpbox_main:
+    pattern:    /
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:index }
+derpbox_login:
+    pattern:   /login
+    defaults:  { _controller: SmithdalecDerpboxBundle:Derpbox:login }
+derpbox_login_check:
+    pattern:   /login_check
+derpbox_logout:
+    pattern:   /logout
+
+# File Actions
+derpbox_add_file:
+    pattern:    /file/add
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:addFile }
+derpbox_delete_file:
+    pattern:    /file/{file_id}/delete
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:deleteFile }
+derpbox_download_file:
+    pattern:    /file/{file_id}/download
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:downloadFile }
+derpbox_make_file_public:
+    pattern:    /file/{file_id}/make-public
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:makeFilePublic }
+derpbox_make_file_private:
+    pattern:    /file/{file_id}/make-private
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:makeFilePrivate }
+
+# Folder actions
+derpbox_add_folder:
+    pattern:    /folder/add
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:addFolder }
+derpbox_view_folder:
+    pattern:    /folder/{folder_id}
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:index }
+derpbox_delete_folder:
+    pattern:    /folder/{folder_id}/delete
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:deleteFolder }
+derpbox_make_folder_public:
+    pattern:    /folder/{folder_id}/make-public
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:makeFolderPublic }
+derpbox_make_folder_private:
+    pattern:    /folder/{folder_id}/make-private
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:makeFolderPrivate }
+derpbox_share_folder:
+    pattern:    /folder/{folder_name}/share
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:index }
+
+# Public File/Folder Actions
+derpbox_download_public_file:
+    pattern:    /public/file/{file_id}/download
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:downloadPublicFile }
+derpbox_view_public_folder:
+    pattern:    /public/folder/{folder_id}
+    defaults:   { _controller: SmithdalecDerpboxBundle:Derpbox:viewPublicFolder }

@@ -1,0 +1,21 @@
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner" style="padding: 0 20px;">
+        <a class="brand" href="{{path('derpbox_main')}}">Derpbox</a>
+        <ul class="nav pull-right">
+            <li class="dropdown">
+            	{% if app.user %}
+	                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+		                    {{app.user.username}} <b class="caret"></b>
+	                </a>
+	                <ul class="dropdown-menu">
+	                    <li>
+	                        <a href="{{ path('derpbox_logout') }}">Log Out</a>
+	                    </li>
+	                </ul>
+	            {% else %}
+	            	<a href="{{ path('derpbox_login') }}">Not Logged in</a>
+	            {% endif %}
+            </li>
+        </ul>
+    </div>
+</div> <!-- end nav -->

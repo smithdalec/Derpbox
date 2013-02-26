@@ -1,0 +1,12 @@
+parameters:
+#    smithdalec_derpbox.example.class: Smithdalec\DerpboxBundle\Example
+
+services:
+    smithdalec_derpbox.listener.before_controller:
+        class: Smithdalec\DerpboxBundle\EventListener\BeforeControllerListener
+        scope: request
+        tags:
+            - { name: kernel.event_listener, event: kernel.controller, method: onKernelController }
+#    smithdalec_derpbox.example:
+#        class: %smithdalec_derpbox.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]

@@ -1,0 +1,43 @@
+jms_security_extra:
+    secure_all_services: false
+    expressions: true
+
+security:
+    encoders:
+        Smithdalec\DerpboxBundle\Entity\User:
+            algorithm:        sha1
+            encode_as_base64: false
+            iterations:       1
+
+    role_hierarchy:
+        ROLE_ADMIN:       ROLE_USER
+        ROLE_SUPER_ADMIN: [ROLE_USER, ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+
+    providers:
+        users:
+            entity: { class: SmithdalecDerpboxBundle:User, property: username }
+
+    firewalls:
+        login:
+            pattern:  ^/login$
+            anonymous: ~
+        public_files:
+            pattern: ^/public
+            anonymous: ~
+        sf2_dev_toolbar:
+            pattern: ^/_wdt
+            anonymous: ~
+        secured_area:
+            pattern:    ^/
+            form_login:
+                login_path: /login
+                check_path: /login_check
+            logout:
+                path:   /logout
+                target: /
+
+    access_control:
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/public, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/_wdt, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }
