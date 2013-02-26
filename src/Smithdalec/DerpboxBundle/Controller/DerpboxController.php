@@ -183,6 +183,9 @@ class DerpboxController extends Controller implements InitializableControllerInt
     {
         $folder = $this->folderRepo->find($folder_id);
         $files = $this->fileRepo->findByFolder($folder->getId());
+        if (!$folder) {
+            throw $this->createNotFoundException('The file does not exist');
+        }
         if ($folder->getUser() == $this->user->getId()) {
             $this->em->remove($folder);
             foreach ($files as $file) {
@@ -196,12 +199,19 @@ class DerpboxController extends Controller implements InitializableControllerInt
     public function downloadFileAction($file_id)
     {
         $file = $this->fileRepo->find($file_id);
+        if (!$file) {
+            throw $this->createNotFoundException('The file does not exist');
+        }
         $user_authenticated = $this->user instanceof Smithdalec\DerpboxBundle\Entity\User;
         // Whether or not the current user is the owner of the file
         $user_owner = ($user_authenticated && $this->user->getId() == $file->getUser());
         // If the enclosing folder is public
         $public_folder = false;
-        $folder = $this->folderRepo->find($file->getFolder());
+        if ($file->getFolder()) {
+            $folder = $this->folderRepo->find($file->getFolder());
+        } else {
+            $folder = false;
+        }
         if ($folder && $folder->isPublic()) {
             $public_folder = true;
         }
@@ -231,6 +241,9 @@ class DerpboxController extends Controller implements InitializableControllerInt
     {
         $redirect = $this->generateUrl('derpbox_main');
         $file = $this->fileRepo->find($file_id);
+        if (!$file) {
+            throw $this->createNotFoundException('The file does not exist');
+        }
         if ($this->user->getId() == $file->getUser()) {
             $file->setPublic($is_public);
             $this->em->flush();
@@ -259,6 +272,9 @@ class DerpboxController extends Controller implements InitializableControllerInt
     {
         $redirect = $this->generateUrl('derpbox_main');
         $folder = $this->folderRepo->find($folder_id);
+        if (!$folder) {
+            throw $this->createNotFoundException('The folder does not exist');
+        }
         if ($this->user->getId() == $folder->getUser()) {
             $folder->setPublic($is_public);
             // set files within the folder public
