@@ -3,10 +3,11 @@ Derpbox Installation
 - Built upon Symfony2, see Symfony's documentation below
 
     cd path/to/Derpbox
+- Copy the parameters file to use for your specific system
     cp app/config/parameters.yml.dist app/config/parameters.yml
 
-- Edit app/config/parameters.yml to with your database credentials
-- Install Composer (step 2 below)
+- Edit app/config/parameters.yml with your database credentials
+- Install Composer and the app's dependencies(step 2 below)
 
     composer update
     composer install
