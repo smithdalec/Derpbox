@@ -4,7 +4,7 @@ namespace Smithdalec\DerpboxBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Security\Core\SecurityContext;
-use Smithdalec\DerpboxBundle\Entity\File;
+use Smithdalec\DerpboxBundle\Entity\User;
 use Smithdalec\DerpboxBundle\Entity\User as DerpboxUser;
 use Smithdalec\DerpboxBundle\Entity\Folder;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -15,17 +15,47 @@ use Symfony\Component\HttpFoundation\Request;
 
 class DerpboxController extends Controller implements InitializableControllerInterface
 {
+    /**
+     * @var Smithdalec\DerpboxBundle\Entity\User
+     */
     protected $user;
+
+    /**
+     * @var Smithdalec\DerpboxBundle\Entity\User
+     */
     protected $file;
+
+    /**
+     * @var Smithdalec\DerpboxBundle\Entity\Folder
+     */
     protected $folder;
+
+    /**
+     * Doctrine Repository for the File Entity
+     * @var
+     */
     protected $fileRepo;
+
+    /**
+     * Doctrine Repository for the Folder Entity
+     * @var
+     */
     protected $folderRepo;
+
+    /**
+     * The Entity of the folder currently being viewed
+     * @var
+     */
     protected $currentFolder;
-    // Entity Manager
+
+    /**
+     * Universal Doctrine Entity Manager
+     * @var
+     */
     protected $em;
 
     /**
-     * pseudo-constructor
+     * Pseudo-constructor used by InitializableControllerInterface
      */
     public function initialize(Request $request)
     {
@@ -38,8 +68,8 @@ class DerpboxController extends Controller implements InitializableControllerInt
     }
 
     /**
-     * Main page entry point
-     * @param  mixed $folder_name   The name of the folder as passed in the URL
+     * Route Function for home page
+     * @param  mixed $folder_name   The ID of the folder as passed in the URL
      */
     public function indexAction($folder_id = false)
     {
@@ -51,6 +81,7 @@ class DerpboxController extends Controller implements InitializableControllerInt
         $folder_form = $this->getCreateFolderForm();
 
         $criteria = array('user' => $this->user->getId());
+        // If we're viewing a folder (as opposed to the root of the files)
         if ($this->currentFolder) {
             $criteria['folder'] = $this->currentFolder->getId();
             $folders = array();
@@ -58,6 +89,7 @@ class DerpboxController extends Controller implements InitializableControllerInt
             $criteria['folder'] = null;
             $folders = $this->folderRepo->findByUser($this->user->getId());
         }
+        // Get all files within the specified folder (if any)
         $files = $this->fileRepo->findBy($criteria);
 
 
@@ -72,6 +104,11 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $this->render($view, $args);
     }
 
+    /**
+     * Route handler for /public/folder/{folder_id}
+     *
+     * @param  int $folder_id ID of the folder to view
+     */
     public function viewPublicFolderAction($folder_id)
     {
         if ($this->folder = $this->folderRepo->find($folder_id)) {
@@ -94,12 +131,15 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $this->redirect($this->generateUrl('derpbox_main'));
     }
 
+    /**
+     * Route handler for the login page/form
+     */
     public function loginAction()
     {
         $request = $this->getRequest();
         $session = $request->getSession();
 
-        // get the login error if there is one
+        // Get the login error if there are any
         if ($request->attributes->has(SecurityContext::AUTHENTICATION_ERROR)) {
             $error = $request->attributes->get(
                 SecurityContext::AUTHENTICATION_ERROR
@@ -119,57 +159,79 @@ class DerpboxController extends Controller implements InitializableControllerInt
         );
     }
 
+    /**
+     * Route handler for /folder/add
+     */
     public function addFolderAction()
     {
         $folder_form = $this->getCreateFolderForm();
 
+        // If a form was submitted
         if ($this->getRequest()->getMethod() === 'POST') {
+            // Map form values to Form entity properties
             $folder_form->bindRequest($this->getRequest());
             if ($folder_form->isValid()) {
+                // Passed all assertions/validation constraints
                 $this->folder->setUser($this->user->getId());
                 $this->folder->setPublic(false);
 
+                // Prepare/combine queries
                 $this->em->persist($this->folder);
+                // Execute queries
                 $this->em->flush();
             }
         }
         return $this->redirect($this->generateUrl('derpbox_main'));
     }
 
+    /**
+     * Route handler for /file/add
+     */
     public function addFileAction()
     {
         $upload_form = $this->getUploadForm();
+        // Index URL
         $redirect = $this->generateUrl('derpbox_main');
 
+        // If form was submitted
         if ($this->getRequest()->getMethod() === 'POST') {
+            // Map entity/form
             $upload_form->bindRequest($this->getRequest());
+            // If data passed validation
             if ($upload_form->isValid()) {
                 $this->file->setUser($this->user->getId());
                 $this->file->setPublic(false);
 
+                // Execute the queries
                 $this->em->persist($this->file);
                 $this->em->flush();
+
+                // If the user added a file within a folder, stay in that folder
                 if ($parent_folder_id = $this->file->getFolder()) {
                     $parent_folder = $this->folderRepo->find($parent_folder_id);
                     $args = array('folder_name' => $parent_folder->getName());
                     $redirect = $this->generateUrl('derpbox_view_folder', $args);
                 }
             }
-            else {var_dump($upload_form->getData());var_dump($upload_form->getErrors()); die();}
         }
 
         return $this->redirect($redirect);
     }
 
+    /**
+     * Route handler for /file/{file_id}/delete
+     * @param  int $file_id The ID of the file to delete
+     */
     public function deleteFileAction($file_id)
     {
         $file = $this->fileRepo->find($file_id);
         $redirect = $this->generateUrl('derpbox_main');
 
-        // Can only delete own files
+        // Can only delete own files (that exist)
         if ($file && $this->user->getId() == $file->getUser()) {
             $this->em->remove($file);
             $this->em->flush();
+            // Forward to the folder the user was viewing
             if ($folder_id = $file->getFolder()) {
                 $folder = $this->folderRepo->find($folder_id);
                 $args = array('folder_id' => $folder->getId());
@@ -180,6 +242,10 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $this->redirect($redirect);
     }
 
+    /**
+     * Route handler for /folder/{folder_id}/delete
+     * @param  int $folder_id ID of the folder to delete
+     */
     public function deleteFolderAction($folder_id)
     {
         $folder = $this->folderRepo->find($folder_id);
@@ -188,21 +254,30 @@ class DerpboxController extends Controller implements InitializableControllerInt
             throw $this->createNotFoundException('The file does not exist');
         }
         if ($folder->getUser() == $this->user->getId()) {
+            // Delete the entity record (short-term)
             $this->em->remove($folder);
             foreach ($files as $file) {
                 $this->em->remove($file);
             }
+            // Persist it to the db
             $this->em->flush();
         }
         return $this->redirect($this->generateUrl('derpbox_main'));
     }
 
+    /**
+     * Route handler for /file/{file_id}/download
+     * @param  int $file_id The ID of the file to download
+     */
     public function downloadFileAction($file_id)
     {
         $file = $this->fileRepo->find($file_id);
         if (!$file) {
             throw $this->createNotFoundException('The file does not exist');
         }
+        // If the use is authenticated anonymously (not logged in), the expected
+        // User object is actually a string or NULL, so check to make sure it's
+        // of the proper class
         $user_authenticated = ($this->user instanceof DerpboxUser);
         // Whether or not the current user is the owner of the file
         $user_owner = ($user_authenticated && $this->user->getId() == $file->getUser());
@@ -223,28 +298,45 @@ class DerpboxController extends Controller implements InitializableControllerInt
         }
     }
 
+    /**
+     * Route Handler for /public/file/{file_id}/download
+     * Public wrapper around downloadFileAction()
+     */
     public function downloadPublicFileAction($file_id)
     {
         return $this->downloadFileAction($file_id);
     }
 
+    /**
+     * Route handler for /file/{file_id}/make-public
+     */
     public function makeFilePublicAction($file_id)
     {
         return $this->changeFileVisibility($file_id, true);
     }
 
+    /**
+     * Route handler for /file/{file_id}/make-private
+     */
     public function makeFilePrivateAction($file_id)
     {
         return $this->changeFileVisibility($file_id, false);
     }
 
+    /**
+     * Changes a public file to private, or vice versa
+     * @param  int $file_id   The ID of the file to change
+     * @param  boolean $is_public Whether or not the file should be changed to public visibility
+     */
     protected function changeFileVisibility($file_id, $is_public)
     {
+        // Index URL
         $redirect = $this->generateUrl('derpbox_main');
         $file = $this->fileRepo->find($file_id);
         if (!$file) {
             throw $this->createNotFoundException('The file does not exist');
         }
+        // Should only be able to modify own files
         if ($this->user->getId() == $file->getUser()) {
             $file->setPublic($is_public);
             $this->em->flush();
@@ -259,16 +351,27 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $this->forbidden();
     }
 
+    /**
+     * Route handler for /folder/{folder_id}/make-public
+     */
     public function makeFolderPublicAction($folder_id)
     {
         return $this->changeFolderVisibility($folder_id, true);
     }
 
+    /**
+     * Route handler for /folder/{folder_id}/make-private
+     */
     public function makeFolderPrivateAction($folder_id)
     {
         return $this->changeFolderVisibility($folder_id, false);
     }
 
+    /**
+     * Make a public folder private, or vice versa
+     * @param  int $folder_id The ID of teh folder
+     * @param  boolean $is_public Whether or not the file shoudl end up being public
+     */
     protected function changeFolderVisibility($folder_id, $is_public)
     {
         $redirect = $this->generateUrl('derpbox_main');
@@ -294,6 +397,10 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $this->forbidden();
     }
 
+    /**
+     * Returns the contents of the file to download
+     * @param  Smithdalec\DerpboxBundle\Entity/File $file
+     */
     public function download($file)
     {
         $response = new Response;
@@ -305,6 +412,9 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $response;
     }
 
+    /**
+     * Return a 403 Response for unauthorized requests
+     */
     public function forbidden()
     {
         $response = new Response;
@@ -312,6 +422,9 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $response;
     }
 
+    /**
+     * Builds the File Upload Form
+     */
     protected function getUploadForm()
     {
         $file_form_builder = $this->createFormBuilder($this->file)->add('file');
@@ -324,6 +437,9 @@ class DerpboxController extends Controller implements InitializableControllerInt
         return $file_form_builder->getForm();
     }
 
+    /**
+     * Builds the Add Folder form
+     */
     protected function getCreateFolderForm()
     {
         return $this->createFormBuilder($this->folder)
