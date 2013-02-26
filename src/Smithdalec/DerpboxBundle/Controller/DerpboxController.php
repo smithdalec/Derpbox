@@ -7,6 +7,7 @@ use Symfony\Component\Security\Core\SecurityContext;
 use Smithdalec\DerpboxBundle\Entity\User;
 use Smithdalec\DerpboxBundle\Entity\User as DerpboxUser;
 use Smithdalec\DerpboxBundle\Entity\Folder;
+use Smithdalec\DerpboxBundle\Entity\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -21,7 +22,7 @@ class DerpboxController extends Controller implements InitializableControllerInt
     protected $user;
 
     /**
-     * @var Smithdalec\DerpboxBundle\Entity\User
+     * @var Smithdalec\DerpboxBundle\Entity\File
      */
     protected $file;
 
