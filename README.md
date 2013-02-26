@@ -1,3 +1,13 @@
+- Install Composer
+cd path/to/Derpbox
+cp app/config/parameters.yml.dist app/config/parameters.yml
+- Edit parameters.yml to match database
+composer update
+composer install
+
+
+
+
 Symfony Standard Edition
 ========================
 

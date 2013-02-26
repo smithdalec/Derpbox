@@ -3,7 +3,7 @@
 <head>
     <title>Derpbox</title>
     {% block stylesheets %}
-    <link href="/bootstrap/css/bootstrap.css" rel="stylesheet" />
+    <link href="{{ asset('bundles/smithdalecderpbox/bootstrap/css/derpbox_bootstrap.css') }}" rel="stylesheet" />
     <link href="{{ asset('bundles/smithdalecderpbox/css/derpbox_bootstrap.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('bundles/smithdalecderpbox/css/derpbox_custom.css') }}" type="text/css" rel="stylesheet" />
     {% endblock %}
@@ -15,7 +15,7 @@
     </div>
     <!-- Scripts loaded at bottom for max speed -->
     <script src="http://code.jquery.com/jquery.js"></script>
-    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <script src="{{ asset('bundles/smithdalecderpbox/bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('bundles/smithdalecderpbox/js/derpbox_actions.js') }}"></script>
 </body>
 </html>
