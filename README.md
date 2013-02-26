@@ -1,13 +1,16 @@
 Derpbox Installation
 --------------------
 - Built upon Symfony2, see Symfony's documentation below
+
     cd path/to/Derpbox
     cp app/config/parameters.yml.dist app/config/parameters.yml
 - Edit app/config/parameters.yml to with your database credentials
 - Install Composer (step 2 below)
+
     composer update
     composer install
 - If stylesheets/javascript/images weren't handled by Composer, also run:
+
     app/console assets:install
 - If mod_rewrite isn't enabled, use path/to/derpbox/app.php as the index file
 - SQL structure for the MySQL database is in a dump file located in src/Smithdalec/DerpboxBundle/Resources/derpbox.sql with the structure for tables, and some predefined users in the users table.
